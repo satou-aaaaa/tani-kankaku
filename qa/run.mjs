@@ -280,6 +280,15 @@ try {
   check("降りたあとに開き直しても、続きからにならない", await p.locator(".ch").count() === 0);
   check("とことんの自己ベスト（一度で正解の数）が残る", (await mem(p)).ebest === 2);
   {
+    // 正解した直後に「ここで降りる」を押しても降りられ、いま解いた問題も数える（shared-workflows incidents/2026-11-17-known-game-bugs-spread.md）
+    const q0 = await newPage(); await closeHow(q0);
+    await q0.click("#go-e"); await solve(q0);
+    const qt = await q0.textContent("#quit");
+    await q0.click("#quit"); await q0.waitForTimeout(150);
+    check("とことん：正解した直後に降りると、ボタンは「1問で終える」で、結果に1問が入る", qt.includes("1問で終える") && (await q0.locator("#eres").count()) === 1 && (await q0.textContent("#eres")).includes("1問"), qt);
+    await q0.context().close();
+  }
+  {
     // 残りが少なくなったら足して続ける（終わらない）
     const q = await newPage(); await closeHow(q);
     await q.evaluate(() => { __bs.save((s) => { const l = __bs.endlessList("qa"); s.runs.e = { mode: "e", date: __bs.todayKey(), list: l, res: l.slice(0, 95).map(() => ({ m: 0 })), cur: null, id: "qaend", a0: [] }; }); __bs.play("e"); });
